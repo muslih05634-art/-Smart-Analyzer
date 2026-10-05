@@ -13,12 +13,15 @@ def send_telegram(message):
 
     if not token or not chat_id:
         print("Telegram secrets are missing")
-        return
+        return False
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
 
-    # Telegram يسمح برسالة حتى 4096 حرفًا
-    chunks = [message[i:i + 4000] for i in range(0, len(message), 4000)]
+    # Telegram يسمح بحد أقصى يقارب 4096 حرفاً للرسالة
+    chunks = [
+        message[i:i + 4000]
+        for i in range(0, len(message), 4000)
+    ]
 
     for chunk in chunks:
         data = urllib.parse.urlencode({
@@ -26,39 +29,64 @@ def send_telegram(message):
             "text": chunk
         }).encode()
 
-        request = urllib.request.Request(url, data=data, method="POST")
+        request = urllib.request.Request(
+            url,
+            data=data,
+            method="POST"
+        )
 
-        with urllib.request.urlopen(request, timeout=30) as response:
-            print("Telegram:", response.read().decode())
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                result = response.read().decode()
+                print("Telegram:", result)
+
+        except Exception as e:
+            print(f"Telegram error: {e}")
+            return False
+
+    return True
 
 
 def main():
+    print("================================")
+    print("   محلل ذكي | Smart Analyzer")
+    print("================================")
+    print(f"الفريم: {TIMEFRAME}")
+    print()
+
     results = []
-
-    header = (
-        "==============================\n"
-        "محلل ذكي | Smart Analyzer\n"
-        "==============================\n"
-        f"الفريم: {TIMEFRAME}\n"
-    )
-
-    results.append(header)
 
     for symbol in SYMBOLS:
         try:
+            print(f"تحليل {symbol}...")
+
             df = get_data(symbol, interval=TIMEFRAME)
             result = analyze(df)
 
             formatted = format_result(symbol, result)
+
+            print(formatted)
+            print()
+
             results.append(formatted)
 
         except Exception as e:
-            results.append(f"{symbol}: خطأ - {e}")
+            error_message = f"{symbol}: خطأ - {e}"
+            print(error_message)
+            results.append(error_message)
 
-    final_message = "\n\n".join(results)
+    if not results:
+        print("لا توجد نتائج لإرسالها إلى Telegram")
+        return
 
-    print(final_message)
-    send_telegram(final_message)
+    telegram_message = (
+        "📊 محلل ذكي | Smart Analyzer\n"
+        "━━━━━━━━━━━━━━━━━━\n\n"
+        + "\n\n".join(results)
+    )
+
+    print("إرسال النتائج إلى Telegram...")
+    send_telegram(telegram_message)
 
 
 if __name__ == "__main__":
