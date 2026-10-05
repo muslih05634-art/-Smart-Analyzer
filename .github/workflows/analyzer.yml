@@ -1,31 +1,33 @@
-name: Smart Analyzer
+# محلل ذكي | Smart Analyzer
 
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "*/15 * * * *"
+بوت تحليل فني للأسواق.
 
-jobs:
-  analyze:
-    runs-on: ubuntu-latest
+## الأصول
+- SPX
+- NDX
+- META
+- DELL
+- MU
+- AMD
+- MRNA
+- TSLA
+- SPCX
 
-    steps:
-      - name: Download project
-        uses: actions/checkout@v4
+## التحليل
+- الاتجاه: صاعد / هابط / عرضي
+- الدعم الرئيسي
+- المقاومة الرئيسية
+- منطقة دخول CALL
+- منطقة دخول PUT
+- تأكيد بإغلاق شمعة 15 دقيقة
+- الهدف الأول والثاني
+- منطقة إلغاء السيناريو
+- قوة الإشارة من 100
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+## فلتر السيولة
+- متوسط حجم 20 شمعة
+- Volume Ratio
+- الحد الأدنى للسيولة: 1.20x
+- السيولة القوية: 1.50x أو أعلى
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run Smart Analyzer
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          python main.py
+> المشروع للتحليل فقط وليس توصية مالية.
